@@ -32,6 +32,16 @@ public class UDPClient {
             System.out.println("  /clients");
             System.out.println("  exit");
 
+            while (true) {
+                System.out.print("You: ");
+                String message = scanner.nextLine().trim();
+
+                if (message.equalsIgnoreCase("exit")) {
+                    System.out.println("Client closed.");
+                    break;
+                }
+            }
+
         } catch (IOException e) {
             System.out.println("Client error: " + e.getMessage());
         }
