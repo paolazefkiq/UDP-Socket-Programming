@@ -24,6 +24,7 @@ public class UDPClient {
 
             socket.setSoTimeout(5000);
             InetAddress serverAddress = InetAddress.getByName(SERVER_IP);
+
         } catch (IOException e) {
             System.out.println("Client error: " + e.getMessage());
         }
