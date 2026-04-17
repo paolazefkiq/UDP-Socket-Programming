@@ -46,4 +46,10 @@ public class UDPClient {
             System.out.println("Client error: " + e.getMessage());
         }
     }
+
+    private void sendMessage(DatagramSocket socket, InetAddress serverAddress, String message) throws IOException {
+        byte[] buffer = message.getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, SERVER_PORT);
+        socket.send(packet);
+    }
 }
