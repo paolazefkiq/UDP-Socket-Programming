@@ -14,4 +14,19 @@ public class ClientSession {
         this.lastSeen = System.currentTimeMillis();
         this.active = true;
     }
+    public String getKey() {
+    return key;
+}
+
+public String getIpAddress() {
+    return ipAddress;
+}
+
+public int getPort() {
+    return port;
+}
+
+public long getLastSeen() {
+    return lastSeen;
+}
 }
