@@ -1,12 +1,12 @@
-public class FileManager {
+public class AdminService {
 
-    private CommandHandler commandHandler;
+    private static final String ADMIN_SECRET = "admin123";
 
-    public FileManager() {
-        commandHandler = new CommandHandler();
+    public boolean isAdmin(String message) {
+        return message.startsWith("ADMIN|");
     }
 
-    public String handleCommand(String message) {
-        return commandHandler.process(message);
+    public boolean validate(String secret) {
+        return ADMIN_SECRET.equals(secret);
     }
 }
