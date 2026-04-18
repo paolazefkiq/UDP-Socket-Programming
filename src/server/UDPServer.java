@@ -18,8 +18,9 @@ public class UDPServer {
 
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
 
-
     private final FileManager fileManager = new FileManager();
+
+    private final StatsStore statsStore = new StatsStore();
 
     public static void main(String[] args) {
         UDPServer server = new UDPServer();
@@ -33,7 +34,6 @@ public class UDPServer {
             System.out.println("UDP Server is running on port " + SERVER_PORT);
 
             while (true) {
-
 
                 removeInactiveClients();
 
@@ -84,12 +84,14 @@ public class UDPServer {
             session.updateLastSeen();
         }
 
+        statsStore.updateClient(clientKey, clientIp);
+        statsStore.addMessage(clientKey, message);
+
         System.out.println("Message from " + clientKey + " -> " + message);
 
         String response = processMessage(message);
         sendResponse(socket, packet.getAddress(), clientPort, response);
     }
-
 
     private void removeInactiveClients() {
         long now = System.currentTimeMillis();
@@ -97,11 +99,13 @@ public class UDPServer {
         for (ClientSession session : clients.values()) {
             if (session.isActive() && now - session.getLastSeen() > CLIENT_TIMEOUT_MS) {
                 session.setActive(false);
+
+                statsStore.removeClient(session.getKey());
+
                 System.out.println("Client timed out: " + session.getKey());
             }
         }
     }
-
 
     private String processMessage(String message) {
 
