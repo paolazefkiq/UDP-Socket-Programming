@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Stream;
 public class FileManager {
 
     private static final String BASE_FOLDER = "server_files";
+    private static final String ADMIN_SECRET = "admin123";
 
     public FileManager() {
         createBaseFolderIfNeeded();
@@ -30,29 +32,63 @@ public class FileManager {
     }
 
     public String handleCommand(String message) {
+        boolean isAdmin = false;
+        String actualCommand = message;
+
+        if (message.startsWith("ADMIN|")) {
+            String[] parts = message.split("\\|", 3);
+            if (parts.length < 3) {
+                return "Format i gabuar i komandes admin.";
+            }
+
+            String secret = parts[1];
+            actualCommand = parts[2];
+
+            if (!ADMIN_SECRET.equals(secret)) {
+                return "Gabim: admin secret nuk eshte i sakte.";
+            }
+
+            isAdmin = true;
+        }
+
         try {
-            if (message.equalsIgnoreCase("/list")) {
+            if (actualCommand.equalsIgnoreCase("/list")) {
                 return listFiles();
             }
 
-            if (message.startsWith("/read ")) {
-                String filename = message.substring(6).trim();
+            if (actualCommand.startsWith("/read ")) {
+                String filename = actualCommand.substring(6).trim();
                 return readFile(filename);
             }
 
-            if (message.startsWith("/download ")) {
-                String filename = message.substring(10).trim();
+            if (actualCommand.startsWith("/download ")) {
+                String filename = actualCommand.substring(10).trim();
                 return downloadFile(filename);
             }
 
-            if (message.startsWith("/search ")) {
-                String keyword = message.substring(8).trim();
+            if (actualCommand.startsWith("/search ")) {
+                String keyword = actualCommand.substring(8).trim();
                 return searchFiles(keyword);
             }
 
-            if (message.startsWith("/info ")) {
-                String filename = message.substring(6).trim();
+            if (actualCommand.startsWith("/info ")) {
+                String filename = actualCommand.substring(6).trim();
                 return fileInfo(filename);
+            }
+
+            if (actualCommand.startsWith("/upload ")) {
+                if (!isAdmin) {
+                    return "Access denied. Vetem admin mund te beje upload.";
+                }
+                return uploadFile(actualCommand.substring(8).trim());
+            }
+
+            if (actualCommand.startsWith("/delete ")) {
+                if (!isAdmin) {
+                    return "Access denied. Vetem admin mund te fshije file.";
+                }
+                String filename = actualCommand.substring(8).trim();
+                return deleteFile(filename);
             }
 
             return null;
@@ -99,6 +135,33 @@ public class FileManager {
 
         String content = Files.readString(path);
         return "DOWNLOAD " + filename + ":\n" + content;
+    }
+
+    private String uploadFile(String uploadData) throws IOException {
+        String[] parts = uploadData.split("\\|", 2);
+
+        if (parts.length < 2) {
+            return "Format i gabuar. Perdore: /upload filename|permbajtja";
+        }
+
+        String filename = parts[0].trim();
+        String content = parts[1];
+
+        Path path = Paths.get(BASE_FOLDER, filename);
+        Files.writeString(path, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+        return "File u ngarkua me sukses: " + filename;
+    }
+
+    private String deleteFile(String filename) throws IOException {
+        Path path = Paths.get(BASE_FOLDER, filename);
+
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            return "File nuk u gjet: " + filename;
+        }
+
+        Files.delete(path);
+        return "File u fshi me sukses: " + filename;
     }
 
     private String searchFiles(String keyword) throws IOException {
