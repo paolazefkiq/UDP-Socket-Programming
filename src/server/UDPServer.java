@@ -78,10 +78,12 @@ public class UDPServer {
         System.out.println("Message from " + clientKey + " -> " + message);
 
         String response = processMessage(message);
+
         sendResponse(socket, packet.getAddress(), clientPort, response);
     }
 
     private String processMessage(String message) {
+
         if (message.equalsIgnoreCase("/ping")) {
             return "PONG";
         }
@@ -93,17 +95,17 @@ public class UDPServer {
         return "Server received: " + message;
     }
 
+    private long getActiveClientsCount() {
+        return clients.values().stream()
+                .filter(ClientSession::isActive)
+                .count();
+    }
+
     private void sendResponse(DatagramSocket socket, InetAddress address, int port, String response)
             throws IOException {
         byte[] responseBytes = response.getBytes();
         DatagramPacket responsePacket =
                 new DatagramPacket(responseBytes, responseBytes.length, address, port);
         socket.send(responsePacket);
-    }
-
-    private long getActiveClientsCount() {
-        return clients.values().stream()
-                .filter(ClientSession::isActive)
-                .count();
     }
 }
