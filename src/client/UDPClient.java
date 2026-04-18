@@ -19,6 +19,54 @@ public class UDPClient {
     }
 
     public void start() {
+        try (DatagramSocket socket = new DatagramSocket();
+             Scanner scanner = new Scanner(System.in)) {
 
+            socket.setSoTimeout(5000);
+            InetAddress serverAddress = InetAddress.getByName(SERVER_IP);
+
+            System.out.println("UDP Client is connected to server " + SERVER_IP + ":" + SERVER_PORT);
+            System.out.println("Shkruaj mesazh per serverin.");
+            System.out.println("Komanda:");
+            System.out.println("  /ping");
+            System.out.println("  /clients");
+            System.out.println("  exit");
+
+            while (true) {
+                System.out.print("You: ");
+                String message = scanner.nextLine().trim();
+
+                if (message.equalsIgnoreCase("exit")) {
+                    System.out.println("Client closed.");
+                    break;
+                }
+
+                sendMessage(socket, serverAddress, message);
+                receiveResponse(socket);
+            }
+
+        } catch (IOException e) {
+            System.out.println("Client error: " + e.getMessage());
+        }
+    }
+
+    private void sendMessage(DatagramSocket socket, InetAddress serverAddress, String message) throws IOException {
+        byte[] buffer = message.getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, SERVER_PORT);
+        socket.send(packet);
+    }
+
+    private void receiveResponse(DatagramSocket socket) throws IOException {
+        try {
+            byte[] responseBuffer = new byte[BUFFER_SIZE];
+            DatagramPacket responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
+            socket.receive(responsePacket);
+
+            String response = new String(responsePacket.getData(), 0, responsePacket.getLength()).trim();
+            System.out.println("Server: " + response);
+
+        } catch (SocketTimeoutException e) {
+            System.out.println("Nuk erdhi pergjigje nga serveri brenda kohes se caktuar.");
+        }
     }
 }
