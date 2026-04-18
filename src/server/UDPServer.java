@@ -15,6 +15,9 @@ public class UDPServer {
     private static final int MAX_CLIENTS = 10;
     private static final int BUFFER_SIZE = 2048;
 
+    // 🔥 e re
+    private static final long CLIENT_TIMEOUT_MS = 30000; // 30 sekonda
+
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
@@ -29,6 +32,10 @@ public class UDPServer {
             System.out.println("UDP Server is running on port " + SERVER_PORT);
 
             while (true) {
+
+                // 🔥 e re
+                removeInactiveClients();
+
                 try {
                     byte[] buffer = new byte[BUFFER_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -78,12 +85,22 @@ public class UDPServer {
         System.out.println("Message from " + clientKey + " -> " + message);
 
         String response = processMessage(message);
-
         sendResponse(socket, packet.getAddress(), clientPort, response);
     }
 
-    private String processMessage(String message) {
+    // 🔥 METODA E RE
+    private void removeInactiveClients() {
+        long now = System.currentTimeMillis();
 
+        for (ClientSession session : clients.values()) {
+            if (session.isActive() && now - session.getLastSeen() > CLIENT_TIMEOUT_MS) {
+                session.setActive(false);
+                System.out.println("Client timed out: " + session.getKey());
+            }
+        }
+    }
+
+    private String processMessage(String message) {
         if (message.equalsIgnoreCase("/ping")) {
             return "PONG";
         }
