@@ -12,9 +12,10 @@ public class UDPServer {
 
     private static final String SERVER_IP = "0.0.0.0";
     private static final int SERVER_PORT = 5051;
+    private static final int MAX_CLIENTS = 10;
     private static final int BUFFER_SIZE = 2048;
 
-    // ruan klientet aktiv
+    // ruan klientët aktivë
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
@@ -35,7 +36,7 @@ public class UDPServer {
 
                     socket.receive(packet);
 
-                    handlePacket(packet);
+                    handlePacket(socket, packet);
 
                 } catch (SocketTimeoutException e) {
                     continue;
@@ -47,7 +48,7 @@ public class UDPServer {
         }
     }
 
-    private void handlePacket(DatagramPacket packet) {
+    private void handlePacket(DatagramSocket socket, DatagramPacket packet) throws IOException {
 
         String clientIp = packet.getAddress().getHostAddress();
         int clientPort = packet.getPort();
@@ -59,6 +60,16 @@ public class UDPServer {
         ClientSession session = clients.get(clientKey);
 
         if (session == null) {
+            long activeClients = clients.values().stream()
+                    .filter(ClientSession::isActive)
+                    .count();
+
+            if (activeClients >= MAX_CLIENTS) {
+                sendResponse(socket, packet.getAddress(), clientPort,
+                        "SERVER_FULL: Serveri ka arritur limitin e klienteve.");
+                return;
+            }
+
             session = new ClientSession(clientKey, clientIp, clientPort);
             clients.put(clientKey, session);
 
@@ -68,5 +79,13 @@ public class UDPServer {
         }
 
         System.out.println("Message from " + clientKey + " -> " + message);
+    }
+
+    private void sendResponse(DatagramSocket socket, InetAddress address, int port, String response)
+            throws IOException {
+        byte[] responseBytes = response.getBytes();
+        DatagramPacket responsePacket =
+                new DatagramPacket(responseBytes, responseBytes.length, address, port);
+        socket.send(responsePacket);
     }
 }
