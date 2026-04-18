@@ -15,7 +15,7 @@ public class UDPServer {
     private static final int MAX_CLIENTS = 10;
     private static final int BUFFER_SIZE = 2048;
 
-    // 🔥 e re
+
     private static final long CLIENT_TIMEOUT_MS = 30000; // 30 sekonda
 
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
@@ -88,7 +88,7 @@ public class UDPServer {
         sendResponse(socket, packet.getAddress(), clientPort, response);
     }
 
-    // 🔥 METODA E RE
+
     private void removeInactiveClients() {
         long now = System.currentTimeMillis();
 
