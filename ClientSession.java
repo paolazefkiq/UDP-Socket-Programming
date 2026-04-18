@@ -29,4 +29,8 @@ public int getPort() {
 public long getLastSeen() {
     return lastSeen;
 }
+    public void updateLastSeen() {
+    this.lastSeen = System.currentTimeMillis();
+    this.active = true;
+}
 }
