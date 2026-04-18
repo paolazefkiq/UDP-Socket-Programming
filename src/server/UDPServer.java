@@ -15,7 +15,6 @@ public class UDPServer {
     private static final int MAX_CLIENTS = 10;
     private static final int BUFFER_SIZE = 2048;
 
-    // ruan klientët aktivë
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
@@ -39,7 +38,7 @@ public class UDPServer {
                     handlePacket(socket, packet);
 
                 } catch (SocketTimeoutException e) {
-                    // vazhdo
+                    continue;
                 }
             }
 
@@ -55,12 +54,11 @@ public class UDPServer {
 
         String message = new String(packet.getData(), 0, packet.getLength()).trim();
 
-        // kontrollo a ekziston klienti
         ClientSession session = clients.get(clientKey);
 
         if (session == null) {
             long activeClients = clients.values().stream()
-                    .filter(clientSession -> clientSession.isActive())
+                    .filter(ClientSession::isActive)
                     .count();
 
             if (activeClients >= MAX_CLIENTS) {
@@ -79,8 +77,20 @@ public class UDPServer {
 
         System.out.println("Message from " + clientKey + " -> " + message);
 
-        String response = "Server received: " + message;
+        String response = processMessage(message);
         sendResponse(socket, packet.getAddress(), clientPort, response);
+    }
+
+    private String processMessage(String message) {
+        if (message.equalsIgnoreCase("/ping")) {
+            return "PONG";
+        }
+
+        if (message.equalsIgnoreCase("/clients")) {
+            return "Active clients: " + getActiveClientsCount();
+        }
+
+        return "Server received: " + message;
     }
 
     private void sendResponse(DatagramSocket socket, InetAddress address, int port, String response)
@@ -89,5 +99,11 @@ public class UDPServer {
         DatagramPacket responsePacket =
                 new DatagramPacket(responseBytes, responseBytes.length, address, port);
         socket.send(responsePacket);
+    }
+
+    private long getActiveClientsCount() {
+        return clients.values().stream()
+                .filter(ClientSession::isActive)
+                .count();
     }
 }
