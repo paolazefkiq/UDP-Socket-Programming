@@ -40,6 +40,9 @@ public class UDPClient {
                     System.out.println("Client closed.");
                     break;
                 }
+
+                sendMessage(socket, serverAddress, message);
+
             }
         } catch (IOException e) {
             System.out.println("Client error: " + e.getMessage());
