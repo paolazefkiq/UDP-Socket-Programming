@@ -24,6 +24,14 @@ public class UDPClient {
 
             socket.setSoTimeout(5000);
             InetAddress serverAddress = InetAddress.getByName(SERVER_IP);
+
+            System.out.println("UDP Client is connected to server " + SERVER_IP + ":" + SERVER_PORT);
+            System.out.println("Shkruaj mesazh per serverin.");
+            System.out.println("Komanda:");
+            System.out.println("  /ping");
+            System.out.println("  /clients");
+            System.out.println("  exit");
+
         } catch (IOException e) {
             System.out.println("Client error: " + e.getMessage());
         }
