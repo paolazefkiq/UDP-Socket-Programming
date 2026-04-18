@@ -38,3 +38,11 @@ private void handleStatsRequest(HttpExchange exchange) throws IOException {
         return;
     }
 }
+String response = statsStore.toJson();
+
+exchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+exchange.sendResponseHeaders(200, response.getBytes().length);
+
+try (OutputStream os = exchange.getResponseBody()) {
+    os.write(response.getBytes());
+}
