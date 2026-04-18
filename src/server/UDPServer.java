@@ -39,7 +39,7 @@ public class UDPServer {
                     handlePacket(socket, packet);
 
                 } catch (SocketTimeoutException e) {
-                    continue;
+                    // vazhdo
                 }
             }
 
@@ -49,7 +49,6 @@ public class UDPServer {
     }
 
     private void handlePacket(DatagramSocket socket, DatagramPacket packet) throws IOException {
-
         String clientIp = packet.getAddress().getHostAddress();
         int clientPort = packet.getPort();
         String clientKey = clientIp + ":" + clientPort;
@@ -61,7 +60,7 @@ public class UDPServer {
 
         if (session == null) {
             long activeClients = clients.values().stream()
-                    .filter(ClientSession::isActive)
+                    .filter(clientSession -> clientSession.isActive())
                     .count();
 
             if (activeClients >= MAX_CLIENTS) {
@@ -79,6 +78,9 @@ public class UDPServer {
         }
 
         System.out.println("Message from " + clientKey + " -> " + message);
+
+        String response = "Server received: " + message;
+        sendResponse(socket, packet.getAddress(), clientPort, response);
     }
 
     private void sendResponse(DatagramSocket socket, InetAddress address, int port, String response)
