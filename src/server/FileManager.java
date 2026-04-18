@@ -1,11 +1,11 @@
 import java.nio.file.*;
 import java.util.stream.*;
 
-public class FileService {
+public class FileManager {
 
     private static final String BASE_FOLDER = "server_files";
 
-    public FileService() throws Exception {
+    public FileManager() throws Exception {
         Path path = Paths.get(BASE_FOLDER);
         if (!Files.exists(path)) {
             Files.createDirectories(path);
