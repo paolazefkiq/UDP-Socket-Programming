@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,6 +38,21 @@ public class FileManager {
             if (message.startsWith("/read ")) {
                 String filename = message.substring(6).trim();
                 return readFile(filename);
+            }
+
+            if (message.startsWith("/download ")) {
+                String filename = message.substring(10).trim();
+                return downloadFile(filename);
+            }
+
+            if (message.startsWith("/search ")) {
+                String keyword = message.substring(8).trim();
+                return searchFiles(keyword);
+            }
+
+            if (message.startsWith("/info ")) {
+                String filename = message.substring(6).trim();
+                return fileInfo(filename);
             }
 
             return null;
@@ -71,5 +88,49 @@ public class FileManager {
 
         String content = Files.readString(path);
         return "Permbajtja e file-it " + filename + ":\n" + content;
+    }
+
+    private String downloadFile(String filename) throws IOException {
+        Path path = Paths.get(BASE_FOLDER, filename);
+
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            return "File nuk u gjet: " + filename;
+        }
+
+        String content = Files.readString(path);
+        return "DOWNLOAD " + filename + ":\n" + content;
+    }
+
+    private String searchFiles(String keyword) throws IOException {
+        Path basePath = Paths.get(BASE_FOLDER);
+        List<String> matched = new ArrayList<>();
+
+        try (Stream<Path> stream = Files.list(basePath)) {
+            stream.filter(Files::isRegularFile)
+                    .map(path -> path.getFileName().toString())
+                    .filter(name -> name.toLowerCase().contains(keyword.toLowerCase()))
+                    .forEach(matched::add);
+        }
+
+        if (matched.isEmpty()) {
+            return "Nuk u gjet asnje file me fjalen kyce: " + keyword;
+        }
+
+        return "File te gjetura: " + String.join(", ", matched);
+    }
+
+    private String fileInfo(String filename) throws IOException {
+        Path path = Paths.get(BASE_FOLDER, filename);
+
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            return "File nuk u gjet: " + filename;
+        }
+
+        BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
+
+        return "Info per " + filename +
+                "\nMadhesia: " + attrs.size() + " bytes" +
+                "\nData e krijimit: " + attrs.creationTime() +
+                "\nData e modifikimit: " + attrs.lastModifiedTime();
     }
 }
