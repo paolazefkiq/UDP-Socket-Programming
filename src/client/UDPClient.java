@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 public class UDPClient {
 
-    private static final String SERVER_IP = "127.0.0.1"; // nese serveri eshte ne pajisje tjeter, ndryshoje me IP reale
+    private static final String SERVER_IP = "255.255.255.0"; // nese serveri eshte ne pajisje tjeter, ndryshoje me IP reale
     private static final int SERVER_PORT = 5051;
     private static final int BUFFER_SIZE = 2048;
 
