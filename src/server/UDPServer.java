@@ -16,11 +16,16 @@ public class UDPServer {
     private static final int BUFFER_SIZE = 2048;
     private static final long CLIENT_TIMEOUT_MS = 30000;
 
+    // 🔥 HTTP PORT
+    private static final int HTTP_STATS_PORT = 8081;
+
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
-
     private final FileManager fileManager = new FileManager();
-
     private final StatsStore statsStore = new StatsStore();
+
+    // 🔥 HTTP SERVER
+    private final StatsHttpServer statsHttpServer =
+            new StatsHttpServer(statsStore, HTTP_STATS_PORT);
 
     public static void main(String[] args) {
         UDPServer server = new UDPServer();
@@ -32,6 +37,9 @@ public class UDPServer {
             socket.setSoTimeout(2000);
 
             System.out.println("UDP Server is running on port " + SERVER_PORT);
+
+            // 🔥 START HTTP SERVER
+            statsHttpServer.start();
 
             while (true) {
 
@@ -84,6 +92,7 @@ public class UDPServer {
             session.updateLastSeen();
         }
 
+        // 🔥 STATS
         statsStore.updateClient(clientKey, clientIp);
         statsStore.addMessage(clientKey, message);
 
@@ -99,7 +108,6 @@ public class UDPServer {
         for (ClientSession session : clients.values()) {
             if (session.isActive() && now - session.getLastSeen() > CLIENT_TIMEOUT_MS) {
                 session.setActive(false);
-
                 statsStore.removeClient(session.getKey());
 
                 System.out.println("Client timed out: " + session.getKey());
