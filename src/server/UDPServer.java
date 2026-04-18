@@ -27,9 +27,14 @@ public class UDPServer {
                 try {
                     byte[] buffer = new byte[BUFFER_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
                     socket.receive(packet);
 
-                    System.out.println("U pranua nje pakete");
+                    String clientIp = packet.getAddress().getHostAddress();
+                    int clientPort = packet.getPort();
+                    String message = new String(packet.getData(), 0, packet.getLength()).trim();
+
+                    System.out.println("Message from " + clientIp + ":" + clientPort + " -> " + message);
 
                 } catch (SocketTimeoutException e) {
                     continue;
