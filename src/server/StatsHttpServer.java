@@ -17,7 +17,7 @@ public void start() {
         httpServer.setExecutor(null);
         httpServer.start();
 
-        System.out.println("HTTP Stats Server is running on port " + port);
+        System.out.println("HTTP Stats Server is running on port  " + port);
 
     } catch (IOException e) {
         System.out.println("Gabim gjate nisjes se HTTP serverit: " + e.getMessage());
