@@ -10,4 +10,15 @@ public class MessageLogEntry {
         this.message = message;
         this.timestamp = timestamp;
     }
+    public String getClientKey() {
+    return clientKey;
+}
+
+public String getMessage() {
+    return message;
+}
+
+public long getTimestamp() {
+    return timestamp;
+}
 }
