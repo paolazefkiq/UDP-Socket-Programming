@@ -14,11 +14,12 @@ public class UDPServer {
     private static final int SERVER_PORT = 5051;
     private static final int MAX_CLIENTS = 10;
     private static final int BUFFER_SIZE = 2048;
-
-
-    private static final long CLIENT_TIMEOUT_MS = 30000; // 30 sekonda
+    private static final long CLIENT_TIMEOUT_MS = 30000;
 
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
+
+
+    private final FileManager fileManager = new FileManager();
 
     public static void main(String[] args) {
         UDPServer server = new UDPServer();
@@ -33,7 +34,7 @@ public class UDPServer {
 
             while (true) {
 
-                // 🔥 e re
+
                 removeInactiveClients();
 
                 try {
@@ -55,6 +56,7 @@ public class UDPServer {
     }
 
     private void handlePacket(DatagramSocket socket, DatagramPacket packet) throws IOException {
+
         String clientIp = packet.getAddress().getHostAddress();
         int clientPort = packet.getPort();
         String clientKey = clientIp + ":" + clientPort;
@@ -100,13 +102,20 @@ public class UDPServer {
         }
     }
 
+
     private String processMessage(String message) {
+
         if (message.equalsIgnoreCase("/ping")) {
             return "PONG";
         }
 
         if (message.equalsIgnoreCase("/clients")) {
             return "Active clients: " + getActiveClientsCount();
+        }
+
+        String fileResponse = fileManager.handleCommand(message);
+        if (fileResponse != null) {
+            return fileResponse;
         }
 
         return "Server received: " + message;

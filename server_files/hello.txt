@@ -1,3 +1,1 @@
-.idea/
-out/
-*.iml
+Ky eshte file testues per projektin.
