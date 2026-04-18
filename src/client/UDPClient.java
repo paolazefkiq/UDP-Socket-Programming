@@ -53,4 +53,18 @@ public class UDPClient {
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, serverAddress, SERVER_PORT);
         socket.send(packet);
     }
+
+    private void receiveResponse(DatagramSocket socket) throws IOException {
+        try {
+            byte[] responseBuffer = new byte[BUFFER_SIZE];
+            DatagramPacket responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
+            socket.receive(responsePacket);
+
+            String response = new String(responsePacket.getData(), 0, responsePacket.getLength()).trim();
+            System.out.println("Server: " + response);
+
+        } catch (SocketTimeoutException e) {
+            System.out.println("Nuk erdhi pergjigje nga serveri brenda kohes se caktuar.");
+        }
+    }
 }
