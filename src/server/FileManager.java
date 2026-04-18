@@ -1,10 +1,7 @@
 package server;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +32,8 @@ public class FileManager {
         boolean isAdmin = false;
         String actualCommand = message;
 
+        // Formati per admin:
+        // ADMIN|admin123|/delete test.txt
         if (message.startsWith("ADMIN|")) {
             String[] parts = message.split("\\|", 3);
             if (parts.length < 3) {
@@ -76,6 +75,7 @@ public class FileManager {
                 return fileInfo(filename);
             }
 
+            // Komandat poshte lejohen vetem per admin
             if (actualCommand.startsWith("/upload ")) {
                 if (!isAdmin) {
                     return "Access denied. Vetem admin mund te beje upload.";
@@ -91,7 +91,7 @@ public class FileManager {
                 return deleteFile(filename);
             }
 
-            return null;
+            return null; // nuk eshte komandë e file manager-it
 
         } catch (IOException e) {
             return "Gabim gjate ekzekutimit te komandes: " + e.getMessage();
@@ -116,7 +116,7 @@ public class FileManager {
     }
 
     private String readFile(String filename) throws IOException {
-        Path path = Paths.get(BASE_FOLDER, filename);
+        Path path = resolveSafePath(filename);
 
         if (!Files.exists(path) || !Files.isRegularFile(path)) {
             return "File nuk u gjet: " + filename;
@@ -127,7 +127,7 @@ public class FileManager {
     }
 
     private String downloadFile(String filename) throws IOException {
-        Path path = Paths.get(BASE_FOLDER, filename);
+        Path path = resolveSafePath(filename);
 
         if (!Files.exists(path) || !Files.isRegularFile(path)) {
             return "File nuk u gjet: " + filename;
@@ -138,6 +138,8 @@ public class FileManager {
     }
 
     private String uploadFile(String uploadData) throws IOException {
+        // Formati:
+        // /upload test.txt|kjo eshte permbajtja
         String[] parts = uploadData.split("\\|", 2);
 
         if (parts.length < 2) {
@@ -147,14 +149,14 @@ public class FileManager {
         String filename = parts[0].trim();
         String content = parts[1];
 
-        Path path = Paths.get(BASE_FOLDER, filename);
+        Path path = resolveSafePath(filename);
         Files.writeString(path, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         return "File u ngarkua me sukses: " + filename;
     }
 
     private String deleteFile(String filename) throws IOException {
-        Path path = Paths.get(BASE_FOLDER, filename);
+        Path path = resolveSafePath(filename);
 
         if (!Files.exists(path) || !Files.isRegularFile(path)) {
             return "File nuk u gjet: " + filename;
@@ -183,7 +185,7 @@ public class FileManager {
     }
 
     private String fileInfo(String filename) throws IOException {
-        Path path = Paths.get(BASE_FOLDER, filename);
+        Path path = resolveSafePath(filename);
 
         if (!Files.exists(path) || !Files.isRegularFile(path)) {
             return "File nuk u gjet: " + filename;
@@ -195,5 +197,16 @@ public class FileManager {
                 "\nMadhesia: " + attrs.size() + " bytes" +
                 "\nData e krijimit: " + attrs.creationTime() +
                 "\nData e modifikimit: " + attrs.lastModifiedTime();
+    }
+
+    private Path resolveSafePath(String filename) throws IOException {
+        Path basePath = Paths.get(BASE_FOLDER).toAbsolutePath().normalize();
+        Path requested = basePath.resolve(filename).normalize();
+
+        if (!requested.startsWith(basePath)) {
+            throw new IOException("Qasje e palejuar ne path.");
+        }
+
+        return requested;
     }
 }
