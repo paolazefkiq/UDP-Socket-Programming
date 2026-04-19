@@ -16,14 +16,12 @@ public class UDPServer {
     private static final int BUFFER_SIZE = 2048;
     private static final long CLIENT_TIMEOUT_MS = 30000;
 
-    // 🔥 HTTP PORT
     private static final int HTTP_STATS_PORT = 8081;
 
     private final Map<String, ClientSession> clients = new ConcurrentHashMap<>();
     private final FileManager fileManager = new FileManager();
     private final StatsStore statsStore = new StatsStore();
 
-    // 🔥 HTTP SERVER
     private final StatsHttpServer statsHttpServer =
             new StatsHttpServer(statsStore, HTTP_STATS_PORT);
 
@@ -38,7 +36,6 @@ public class UDPServer {
 
             System.out.println("UDP Server is running on port " + SERVER_PORT);
 
-            // 🔥 START HTTP SERVER
             statsHttpServer.start();
 
             while (true) {
@@ -92,7 +89,6 @@ public class UDPServer {
             session.updateLastSeen();
         }
 
-        // 🔥 STATS
         statsStore.updateClient(clientKey, clientIp);
         statsStore.addMessage(clientKey, message);
 
